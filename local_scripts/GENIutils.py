@@ -4,28 +4,22 @@ Written and modified by various students over the years, written into a module b
 """
 from __future__ import print_function
 from xml.dom import minidom
-from time import gmtime, strftime
-from subprocess import call
-from scapy.all import *
-from collections import defaultdict
-from datetime import datetime, time, timedelta
 import paramiko
-import pdb
 import sys
 import os
-import re
-import zipfile
-import re
-import time
-import datetime
-import subprocess
 import configparser
-import argparse
 
 def orchestrateRemoteCommands(remoteGENINode, GENISliceDict, cmdList, getOutput=False, waitForResult=True):
     """
+    Execution of a single or collection of commands on a GENI node.
+    :param remoteGENINode: Name of the remote node
+    :param GENISliceDict: Dictionary of GENI slice connection information
+    :param cmdList: Either a string or string list of remote Bash commands
+    :param getOutput: Return the output of the command
+    :param waitForResult: Blocking call to wait for completion of command
+    :return cmdOutput: Result of output
+    :return: Return nothing
     """
-
     keyLocation = getConfigInfo("Local Utilities", "privateKey")
     psswd = getConfigInfo("GENI Credentials", "password")
     user = getConfigInfo("GENI Credentials", "username")
@@ -161,7 +155,7 @@ def buildDictonary(rspec_file):
     xmldoc = minidom.parse(rspec_file)
 
     keys = formKeys('node', 'client_id', xmldoc)
-    vals = formValues('node', 'interface', 'address', 'mac_address', xmldoc)
+    vals = formValues('node', xmldoc)
 
     RSPECDict = dict(zip(keys, vals))
 
@@ -236,15 +230,12 @@ def formKeys(node, client_id, xmlInfo):
     return must_keys
 
 
-def formValues(node, interface, ip, mac, xmlInfo):
+def formValues(node, xmlInfo):
     """
     Define the values to be used in a GENI slice dictonary.
 
     Args:
         node (str): The name of the XML element to parse the node name with.
-        interface (str): The name of the XML element to parse the node interfaces with.
-        ip (str): The name of the XML element to parse the IPv4 addresses with.
-        mac (str): The name of the XML element to parse the MAC addresses with.
         xmlInfo (xml): The result of using the xmldoc library on a valid GENI slice RSPEC.
 
     Returns:
@@ -264,8 +255,6 @@ def formValues(node, interface, ip, mac, xmlInfo):
         Returns:
             string: The tuple of the host FQDN and port.
         """
-
-        host_all = []
         login_info = GENI_node.getElementsByTagName("login") # login is the tag name
 
         for elem in login_info:
@@ -304,10 +293,10 @@ def formValues(node, interface, ip, mac, xmlInfo):
 
     for node in node_lst:
         hostname = hostInfo(node) # Uses the nested hostInfo() function
-        ipaddr = ipStrip(node) # Uses the nested ipStrip() function
-        full = hostname + ipaddr
+        #ipaddr = ipStrip(node) # Uses the nested ipStrip() function
+        #full = hostname + ipaddr
 
-        must_values.append(full)
+        must_values.append(hostname)
 
     return must_values
 
