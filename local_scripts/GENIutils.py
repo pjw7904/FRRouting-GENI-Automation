@@ -2,12 +2,13 @@
 Module to define all of the functions needed to successfully parse through a GENI RSPEC file
 Written and modified by various students over the years, written into a module by Peter Willis (pjw7904@rit.edu)
 """
-from __future__ import print_function
 from xml.dom import minidom
-import paramiko
+from collections import defaultdict
+import paramiko # External library for SSH API
 import sys
 import os
 import configparser
+import ipaddress
 
 def orchestrateRemoteCommands(remoteGENINode, GENISliceDict, cmdList, getOutput=False, waitForResult=True):
     """
@@ -101,7 +102,6 @@ def getGENIFile(remoteGENINode, GENISliceDict, remoteFileSrc, localFileDst):
 
     return None
 
-
 def uploadToGENINode(remoteGENINode, GENISliceDict, localSrc, remoteDst):
     """
     """
@@ -140,27 +140,92 @@ def uploadToGENINode(remoteGENINode, GENISliceDict, localSrc, remoteDst):
 
     return None
 
+def buildDictonary(rspec):
+    connectionInfo = {} # Holds connection and network information for nodes in RSPEC
+    addressingInfo = defaultdict(list) # Temporary collection to hold network information
 
-def buildDictonary(rspec_file):
-    """
-    Builds a dictionary data structure based on a given GENI RSPEC file with the
-    necessary information to parse out GENI host information. The cumulation of the work done
-    via the formKeys() function and the formValues() function. The xmldoc module is used to
-    initally parse the file, as the file is XML compliant.
+    # Parse RSPEC
+    getConnectionInfo(rspec, connectionInfo, addressingInfo)
+    getAddressingInfo(connectionInfo, addressingInfo) # Adds addressing info into connection dictonary
 
-    Returns:
-        dictonary: The GENI slice information parsed into a dictonary.
-    """
+    return connectionInfo
 
-    xmldoc = minidom.parse(rspec_file)
+def getConnectionInfo(rspec, connectionInfo, addressingInfo):
+    xmlInfo = minidom.parse(rspec)
 
-    keys = formKeys('node', 'client_id', xmldoc)
-    vals = formValues('node', xmldoc)
+    # Get the top-level XML tag Node, which contains node information
+    nodes = xmlInfo.getElementsByTagName('node')
 
-    RSPECDict = dict(zip(keys, vals))
+    # Iterate through each node in the topology and grab its information
+    for node in nodes:
+        # Get name of node (ex: node-1)
+        nodeName = node.attributes['client_id'].value
 
-    return RSPECDict
+        # Get the login credentials for the node, which is the FQDN and port
+        loginCreds = node.getElementsByTagName("login")
+        hostname = (loginCreds[0].attributes["hostname"]).value
+        port = (loginCreds[0].attributes["port"]).value
 
+        # Each entry in the dictonary is a 3-tuple/triple containing the FQDN, port, and network information
+        connectionInfo[nodeName] = (hostname, port, {})
+
+        # Get the IP address and mask for each network interface attached to the node
+        networkInterfaceInfo = node.getElementsByTagName("ip")
+        for interface in networkInterfaceInfo:
+            ipv4addr = (interface.attributes["address"]).value
+            subnetMask = (interface.attributes["netmask"]).value
+
+            # With the address and mask, determine the network the interface is attached to
+            # example: 10.10.1.5/24 address --> 10.10.1.0/24 network
+            fulladdr = "{}/{}".format(ipv4addr, subnetMask)
+            networkAddress = ipaddress.ip_network(fulladdr, strict=False)
+
+            # Store the networking info in the other dictonary for use later
+            addressingInfo[networkAddress].append((nodeName, ipv4addr))
+
+    return
+
+def getAddressingInfo(connectionInfo, addressingInfo):
+    # In the connection info, index 2 in the 3-tuple is the network information
+    NETWORK_INFO_INDEX = 2
+
+    # For each subnet found in the RSPEC
+    for subnet in addressingInfo.items():
+        subnetAddr = subnet[0]
+        subnetInfo = subnet[1]
+
+        # For each node attached to the subnet
+        for node in subnetInfo:
+            localNode = node[0]
+            localAddr = node[1]
+
+            # For each of the other nodes attached to the subnet
+            for otherNode in subnetInfo:
+                remoteNode = otherNode[0]
+                remoteAddr = otherNode[1]
+                if(remoteNode != localNode):
+                    newInfo = {"remoteIPAddr": remoteAddr, "localIPAddr": localAddr, "subnet": subnetAddr}
+                    connectionInfo[localNode][NETWORK_INFO_INDEX][remoteNode] = newInfo
+   
+    return
+
+def printDictonaryContent(GENISliceDict):
+    HOSTNAME = 0
+    PORT = 1
+    NET_INFO = 2
+
+    for node in GENISliceDict:
+        print("node: {}".format(node))
+        print("\thostname: {}".format(GENISliceDict[node][HOSTNAME]))
+        print("\tport: {}".format(GENISliceDict[node][PORT]))
+
+        for neighbor in GENISliceDict[node][NET_INFO]:
+            print("\tsubnet: {}".format(GENISliceDict[node][NET_INFO][neighbor]["subnet"]))
+            print("\t\tlocal IP address: {}".format(GENISliceDict[node][NET_INFO][neighbor]["localIPAddr"]))
+            print("\t\tneighbor: {}".format(neighbor))
+            print("\t\tneighbor IP address: {}".format(GENISliceDict[node][NET_INFO][neighbor]["remoteIPAddr"]))
+
+    return
 
 def getGENIHostConnectionArgs(GENISliceDict, node):
     """
@@ -204,102 +269,6 @@ def getExitStatus(status):
         result = "UNKNOWN"
 
     return result
-
-
-def formKeys(node, client_id, xmlInfo):
-    """
-    Define the keys to be used in a GENI slice dictonary.
-
-    Args:
-        node (str): The name of the XML element to parse the node name with.
-        client_id (str): The name of the XML element to parse the client ID with.
-        xmlInfo (xml): The result of using the xmldoc library on a valid GENI slice RSPEC.
-
-    Returns:
-        list: The GENI node name and interface names to be used in a dictonary as keys.
-    """
-
-    must_keys = []
-
-    node_lst = xmlInfo.getElementsByTagName(node)
-
-    for node in node_lst:
-        interface = node.attributes[client_id]
-        must_keys.append(interface.value)
-
-    return must_keys
-
-
-def formValues(node, xmlInfo):
-    """
-    Define the values to be used in a GENI slice dictonary.
-
-    Args:
-        node (str): The name of the XML element to parse the node name with.
-        xmlInfo (xml): The result of using the xmldoc library on a valid GENI slice RSPEC.
-
-    Returns:
-        list: The GENI node name and interface names to be used in a dictonary as values.
-    """
-
-    must_values = []
-    node_lst = xmlInfo.getElementsByTagName(node)
-
-    def hostInfo(GENI_node):
-        """
-        Get the FQDN and and port needed to connect to a remote GENI node via Paramiko (SSH).
-
-        Args:
-            GENI_node (str): The name of the GENI node.
-
-        Returns:
-            string: The tuple of the host FQDN and port.
-        """
-        login_info = GENI_node.getElementsByTagName("login") # login is the tag name
-
-        for elem in login_info:
-            hostname = (elem.attributes["hostname"]).value
-            port = (elem.attributes["port"]).value
-
-        host = str(hostname), str(port)
-
-        return host
-
-    def ipStrip(GENI_node):
-        """
-        Get the IPv4 addresses associated with a GENI node
-
-        Args:
-            GENI_node (str): The name of the GENI node.
-
-        Returns:
-            tuple: A collection of interface names and IPv4 addresses for the GENI node
-        """
-
-        cat = []
-        int_lst = GENI_node.getElementsByTagName("interface")
-
-        for item in int_lst:
-            intr = (item.attributes["client_id"]).value
-            cat.append(intr)
-
-        ip_lst = GENI_node.getElementsByTagName("ip")
-
-        for ip in ip_lst:
-            ip_address = (ip.attributes["address"]).value
-            cat.append(ip_address)
-
-        return tuple(cat)
-
-    for node in node_lst:
-        hostname = hostInfo(node) # Uses the nested hostInfo() function
-        #ipaddr = ipStrip(node) # Uses the nested ipStrip() function
-        #full = hostname + ipaddr
-
-        must_values.append(hostname)
-
-    return must_values
-
 
 def getNodeInfo(infoSection, infoType):
     with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'addrInfo.cnf').replace("\\", "/")) as fp:
