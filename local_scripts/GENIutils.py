@@ -31,7 +31,7 @@ def orchestrateRemoteCommands(remoteGENINode, GENISliceDict, cmdList, getOutput=
 
     host, port = getGENIHostConnectionArgs(GENISliceDict, remoteGENINode)
     remoteShell.connect(host, username = user, pkey = mykey, port = int(port))
-    print("Connected to: {0}".format(remoteGENINode))
+    #print("Connected to: {0}".format(remoteGENINode))
 
     if(getOutput):
         if(type(cmdList) is str):
@@ -144,13 +144,26 @@ def buildDictonary(rspec):
     connectionInfo = {} # Holds connection and network information for nodes in RSPEC
     addressingInfo = defaultdict(list) # Temporary collection to hold network information
 
+    runOnAllNodes = getConfigInfo("Remote Execution", "runOnAllNodes")
+    runOnAllSwitches = getConfigInfo("Remote Execution", "runOnSwitches")
+    runOnNodes = getConfigInfo("Remote Execution", "runOnNodes")
+
+    nodeType = None
+    nodeList = None
+
+    if(runOnAllNodes.lower() == "false"):
+        if(runOnAllSwitches.lower() == "true"):
+            nodeType = getConfigInfo("Local Utilities", "SwitchName")
+        elif(runOnNodes.lower() != "none"):
+            nodeList = runOnNodes.split(",")
+
     # Parse RSPEC
-    getConnectionInfo(rspec, connectionInfo, addressingInfo)
+    getConnectionInfo(rspec, connectionInfo, addressingInfo, nodeList=nodeList, nodeType=nodeType)
     getAddressingInfo(connectionInfo, addressingInfo) # Adds addressing info into connection dictonary
 
     return connectionInfo
 
-def getConnectionInfo(rspec, connectionInfo, addressingInfo):
+def getConnectionInfo(rspec, connectionInfo, addressingInfo, nodeList=None, nodeType=None):
     xmlInfo = minidom.parse(rspec)
 
     # Get the top-level XML tag Node, which contains node information
@@ -160,6 +173,12 @@ def getConnectionInfo(rspec, connectionInfo, addressingInfo):
     for node in nodes:
         # Get name of node (ex: node-1)
         nodeName = node.attributes['client_id'].value
+
+        # Limit what is added to the dictonary based on a list of nodes or a prefix
+        if(nodeType and not nodeName.startswith(nodeType)):
+            continue        
+        elif(nodeList and nodeName not in nodeList):
+            continue
 
         # Get the login credentials for the node, which is the FQDN and port
         loginCreds = node.getElementsByTagName("login")
@@ -271,6 +290,9 @@ def getExitStatus(status):
     return result
 
 def getNodeInfo(infoSection, infoType):
+    '''
+    Deprecated as of 2022, do not use. Keeping for historical purposes.
+    '''
     with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'addrInfo.cnf').replace("\\", "/")) as fp:
         config = configparser.ConfigParser()
         config.readfp(fp)

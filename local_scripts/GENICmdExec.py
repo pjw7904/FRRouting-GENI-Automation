@@ -6,14 +6,11 @@ Desc: Automated configuration of remote nodes on GENI that are a part of a PyMTP
 '''
 
 from GENIutils import getConfigInfo, buildDictonary, orchestrateRemoteCommands
-import argparse # for command-line input
 
 def main():
     # Grabbing configuration info from GENI config file
     rspec = getConfigInfo("Local Utilities", "RSPEC")
     GENIDict = buildDictonary(rspec)
-    codeSource = getConfigInfo("MTP Utilities", "localCodeDirectory")
-    codeDestination = getConfigInfo("GENI Credentials", "remoteCodeDirectory")
 
     notDone = True
     allCmds = []
@@ -25,8 +22,11 @@ def main():
         else:
             notDone = False
 
+    allCmds = allCmds.pop() if len(allCmds) == 1 else allCmds
+
     print("\n+---------Number of Nodes: {0}--------+".format(len(GENIDict)))
     for node in GENIDict:
+        print(node)
         orchestrateRemoteCommands(node, GENIDict, allCmds)
 
 if __name__ == "__main__":

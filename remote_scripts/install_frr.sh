@@ -7,15 +7,12 @@ echo deb https://deb.frrouting.org/frr $(lsb_release -s -c) $FRRVER | sudo tee -
 sudo apt-get update && sudo apt-get -y install frr frr-pythontools
 
 # Give permissions to user to access frr files (this requires a logout after to take effect)
-sudo usermod -a -G frr,frrvty $USER
+sudo usermod -a -G frr,frrvty $(logname)
 
 # Install tshark for packet-level inspections
 sudo DEBIAN_FRONTEND=noninteractive apt-get -y install tshark
 
 # Remove static routes from the nodes so it does not mess with routing protocol updates
-
-## Remove potential log file that was already there if this is being rerun
-rm -f ~/removed_static_routes.log
 
 ## Place result of the ip route command in a variable
 tableOutput=$(ip route)

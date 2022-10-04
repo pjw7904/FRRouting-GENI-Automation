@@ -1,0 +1,24 @@
+[DEFAULT]
+SwitchName:           node-
+endNodeName:          endnode-
+remoteCodeDirectory:  /users/pjw7904
+
+[GENI Credentials]
+username:  pjw7904
+password:  secret
+OSVersion: 18.04
+
+[Local Utilities]
+RSPEC:                    C:/Users/peter/Desktop/Research/RSPECs/Current_RSPEC.xml
+privateKey:               C:/Users/peter/.ssh/id_geni_ssh_rsa
+localWorkingDirectory:    C:/Users/peter/Desktop/Research/PyMTP
+scriptLocation:           C:/Users/peter/Desktop/Research/frrouting_geni/remote_scripts/install_frr.sh
+scriptType:               bash
+
+[Remote Execution]
+runOnAllNodes:            False
+runOnSwitches:            True
+runOnNodes:               None
+
+[BGP Traditional]
+routesToRedistribute:     connected
