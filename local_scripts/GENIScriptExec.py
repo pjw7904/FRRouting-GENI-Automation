@@ -29,6 +29,19 @@ def executeScript(GENIDict=None):
         orchestrateRemoteCommands(node, GENIDict, startCommand, waitForResult=False)
         print("\tScript started")
 
+    return
+
+def executeScriptOnNode(node, nodeInfo, scriptLocation, scriptType, scriptDestination):
+    scriptName = ntpath.basename(scriptLocation)
+    startCommand = "screen -dmS {scriptName} bash -c 'sudo {scriptType} {scriptName}; exec bash'".format(scriptName=scriptName, scriptType=scriptType)
+
+    uploadToGENINode(node, nodeInfo, scriptLocation, scriptDestination)
+    print("\tScript uploaded")
+    orchestrateRemoteCommands(node, nodeInfo, startCommand, waitForResult=False)
+    print("\tScript started")
+
+    return
+
 if __name__ == "__main__":
     # Grabbing configuration info from GENI config file
     rspec = getConfigInfo("Local Utilities", "RSPEC")
