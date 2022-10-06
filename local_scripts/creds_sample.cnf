@@ -1,0 +1,24 @@
+[DEFAULT]
+SwitchName:           node-
+endNodeName:          client-
+remoteCodeDirectory:  /users/user1234
+
+[GENI Credentials]
+username:  user1234
+password:  secret
+OSVersion: 18.04
+
+[Local Utilities]
+RSPEC:                    C:/path/to/rspec/The_RSPEC.xml
+privateKey:               C:/path/to/.ssh/id_geni_ssh_rsa
+localWorkingDirectory:    C:/path/to/frrouting_geni
+scriptLocation:           C:/path/to/frrouting_geni/remote_scripts/somescript.sh
+scriptType:               bash
+
+[Remote Execution]
+runOnAllNodes:            False
+runOnSwitches:            True
+runOnNodes:               None
+
+[BGP Traditional]
+routesToRedistribute:     connected
