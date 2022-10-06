@@ -11,6 +11,7 @@ def executeScript(GENIDict=None):
     if(not GENIDict):
         GENIDict = buildDictonary(rspec)
 
+    # Grab script information
     scriptLocation = getConfigInfo("Local Utilities", "scriptLocation")
     scriptType = getConfigInfo("Local Utilities", "scriptType")
 

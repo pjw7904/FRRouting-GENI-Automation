@@ -1,4 +1,4 @@
-from GENIutils import uploadToGENINode, getConfigInfo, buildDictonary, printDictonaryContent
+from GENIutils import getConfigInfo, buildDictonary, printDictonaryContent
 
 def main():
     # Grabbing configuration info from GENI config file

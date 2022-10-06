@@ -1,5 +1,6 @@
 from GENIutils import getConfigInfo, buildDictonary, orchestrateRemoteCommands
 from GENIScriptExec import executeScriptOnNode
+import os
 
 PRIVATE_ASN_RANGE_START = 64512
 ADD_CONFIG = "-c {}"
@@ -73,6 +74,9 @@ def main():
 
         # Upload config file and execute FRR commands
         executeScriptOnNode(node, GENIDict, '{}_bgp.sh'.format(node), scriptType, scriptDestination)
+
+        # Remove the file created for the node now that it has been uploaded
+        os.remove('{}_bgp.sh'.format(node)) 
 
     return
 

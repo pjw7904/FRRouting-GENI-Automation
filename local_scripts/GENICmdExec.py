@@ -1,8 +1,7 @@
 '''
 Author: Peter Willis (pjw7904@rit.edu)
-Last Updated: 05/18/2021
-Desc: Automated configuration of remote nodes on GENI that are a part of a PyMTP topology/experiment.
-      Please update your GENI configuration file if you haven't done so.
+Last Updated: 10/04/2022
+Desc: Running 
 '''
 
 from GENIutils import getConfigInfo, buildDictonary, orchestrateRemoteCommands
@@ -15,6 +14,7 @@ def main():
     notDone = True
     allCmds = []
 
+    print("Enter the word done to finish")
     while notDone:
         cmd = input("Enter a valid bash command: ")
         if cmd != "done":
