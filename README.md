@@ -1,5 +1,5 @@
-# FRRouting-GENI-Automation
-A collection of scripts to help in the installation, configuration, and testing of routing protocols included in FRRouting on the GENI testbed. This assumes that the image installed on the GENI nodes is Ubuntu/Debian-based. Currently, only scripts and configurations to help with BGP (traditional, not data center) are included.
+# GENI Automation
+A collection of scripts to help in the installation, configuration, and testing of experiments on the GENI testbed, including those that utilize the FRR routing protocol suite. This assumes that the image installed on the GENI nodes is Ubuntu/Debian-based. Currently, only scripts and configurations to help with FRR EBGP (traditional, not data center) are included as a base to show how this collection of scripts can be used.
 
 ## Directories
 1. local_scripts = scripts that are run on your local machine and reach out to the remote GENI nodes via SSH (Paramiko library).
@@ -21,6 +21,27 @@ A collection of scripts to help in the installation, configuration, and testing 
 4. **Install Python package requirements**
    1. Find the requirements.txt file in the directory.
    2. Note if you have the package(s) installed. If not, install them. Over time, this may change, so make sure to look for any updates to that file in future pulls or downloads.
+
+## Credentials File Breakdown
+* SwitchName: Prefix for forwarding nodes (ex: node-)
+* endNodeName: Prefix for client nodes (ex: client-)
+* remoteCodeDirectory: Default directory on remote GENI machines
+* username: Your GENI username
+* password: Your GENI password
+* OSVersion: The version of Ubuntu you're running (ex: 18.04)
+* RSPEC: Path to the manifest RSPEC you are workin on           
+* privateKey: Path to the private key you use to connect to GENI nodes
+* localWorkingDirectory: Path to this directory
+* scriptLocation: Path to a script you wish to run on a remote GENI node
+* scriptType: The type of script at scriptLocation (ex: bash, python)
+* runOnAllNodes: Run your script/command/etc on all GENI nodes in the slice (True/False)
+* runOnSwitches: Run your script/command/etc on only forwarding GENI nodes in the slice (True/False)
+* runOnNodes: firstNodeName,secondNodeName,thirdNodeName (comma-deliminated list of nodes to run a script/command)
+* routesToRedistribute: Type of route BGP needs to redistribute (ex: connected, ospf)
+
+If runOnAllNodes is set to True, the other two options are not checked. If it is set to False, then runOnSwitches is checked for a True value. If that is false, runOnNodes is checked for the node list.
+
+Beyond what is presented here, you can take advantage of this system and add your own custom configuration options. Make sure to renae creds_sample.cnf to creds.cnf when you are all set.
 
 ## Getting the FRR BGP Implementation Running on GENI
 1. **Update the creds file with BGP-appropriate settings**
@@ -111,24 +132,3 @@ A collection of scripts to help in the installation, configuration, and testing 
     C>* 172.16.0.0/12 is directly connected, eth0, 1d22h29m
     K>* 172.16.0.1/32 [0/1024] is directly connected, eth0, 1d22h29m
     ```
-
-## Credentials File Breakdown
-* SwitchName: Prefix for forwarding nodes (ex: node-)
-* endNodeName: Prefix for client nodes (ex: client-)
-* remoteCodeDirectory: Default directory on remote GENI machines
-* username: Your GENI username
-* password: Your GENI password
-* OSVersion: The version of Ubuntu you're running (ex: 18.04)
-* RSPEC: Path to the manifest RSPEC you are workin on           
-* privateKey: Path to the private key you use to connect to GENI nodes
-* localWorkingDirectory: Path to this directory
-* scriptLocation: Path to a script you wish to run on a remote GENI node
-* scriptType: The type of script at scriptLocation (ex: bash, python)
-* runOnAllNodes: Run your script/command/etc on all GENI nodes in the slice (True/False)
-* runOnSwitches: Run your script/command/etc on only forwarding GENI nodes in the slice (True/False)
-* runOnNodes: firstNodeName,secondNodeName,thirdNodeName (comma-deliminated list of nodes to run a script/command)
-* routesToRedistribute: Type of route BGP needs to redistribute (ex: connected, ospf)
-
-If runOnAllNodes is set to True, the other two options are not checked. If it is set to False, then runOnSwitches is checked for a True value. If that is false, runOnNodes is checked for the node list.
-
-Beyond what is presented here, you can take advantage of this system and add your own custom configuration options. Make sure to renae creds_sample.cnf to creds.cnf when you are all set.
