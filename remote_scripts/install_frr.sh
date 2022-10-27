@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Get the FRR Repository added to the node.
 curl -s https://deb.frrouting.org/frr/keys.asc | sudo apt-key add -
 FRRVER="frr-stable"

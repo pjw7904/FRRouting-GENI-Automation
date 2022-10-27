@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Turn on BGP, but it is not active yet
 sudo sed -i 's/bgpd=no/bgpd=yes/g' /etc/frr/daemons
 
