@@ -145,25 +145,19 @@ def buildDictonary(rspec):
     addressingInfo = defaultdict(list) # Temporary collection to hold network information
 
     runOnAllNodes = getConfigInfo("Remote Execution", "runOnAllNodes")
-    runOnAllSwitches = getConfigInfo("Remote Execution", "runOnSwitches")
     runOnNodes = getConfigInfo("Remote Execution", "runOnNodes")
 
-    nodeType = None
-    nodeList = None
-
+    prefixList = None
     if(runOnAllNodes.lower() == "false"):
-        if(runOnAllSwitches.lower() == "true"):
-            nodeType = getConfigInfo("Local Utilities", "SwitchName")
-        elif(runOnNodes.lower() != "none"):
-            nodeList = runOnNodes.split(",")
+        prefixList = tuple(map(str.strip, runOnNodes.split(",")))
 
     # Parse RSPEC
-    getConnectionInfo(rspec, connectionInfo, addressingInfo, nodeList=nodeList, nodeType=nodeType)
+    getConnectionInfo(rspec, connectionInfo, addressingInfo, prefixList=prefixList)
     getAddressingInfo(connectionInfo, addressingInfo) # Adds addressing info into connection dictonary
 
     return connectionInfo
 
-def getConnectionInfo(rspec, connectionInfo, addressingInfo, nodeList=None, nodeType=None):
+def getConnectionInfo(rspec, connectionInfo, addressingInfo, prefixList=None):
     xmlInfo = minidom.parse(rspec)
 
     # Get the top-level XML tag Node, which contains node information
@@ -175,9 +169,7 @@ def getConnectionInfo(rspec, connectionInfo, addressingInfo, nodeList=None, node
         nodeName = node.attributes['client_id'].value
 
         # Limit what is added to the dictonary based on a list of nodes or a prefix
-        if(nodeType and not nodeName.startswith(nodeType)):
-            continue        
-        elif(nodeList and nodeName not in nodeList):
+        if(prefixList and not nodeName.startswith(prefixList)):
             continue
 
         # Get the login credentials for the node, which is the FQDN and port
