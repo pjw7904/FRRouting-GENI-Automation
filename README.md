@@ -35,13 +35,12 @@ A collection of scripts to help in the installation, configuration, and testing 
 * scriptLocation: Path to a script you wish to run on a remote GENI node
 * scriptType: The type of script at scriptLocation (ex: bash, python)
 * runOnAllNodes: Run your script/command/etc on all GENI nodes in the slice (True/False)
-* runOnSwitches: Run your script/command/etc on only forwarding GENI nodes in the slice (True/False)
-* runOnNodes: firstNodeName,secondNodeName,thirdNodeName (comma-deliminated list of nodes to run a script/command)
+* runOnNodes: firstNodeName,secondNodeName, prefixOfName (comma-deliminated list of nodes to run a script/command). For example to get node-1 and all nodes that start with 's', you would enter: node-1, s
 * routesToRedistribute: Type of route BGP needs to redistribute (ex: connected, ospf)
 
-If runOnAllNodes is set to True, the other two options are not checked. If it is set to False, then runOnSwitches is checked for a True value. If that is false, runOnNodes is checked for the node list.
+If runOnAllNodes is set to True, runOnNodes is not checked. If it is set to False, runOnNodes is checked for the node list.
 
-Beyond what is presented here, you can take advantage of this system and add your own custom configuration options. Make sure to renae creds_sample.cnf to creds.cnf when you are all set.
+Beyond what is presented here, you can take advantage of this system and add your own custom configuration options. Make sure to rename creds_sample.cnf to creds.cnf when you are all set.
 
 ## Getting the FRR BGP Implementation Running on GENI
 1. **Update the creds file with BGP-appropriate settings**
