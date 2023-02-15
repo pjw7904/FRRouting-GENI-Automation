@@ -17,7 +17,6 @@ scriptType:               bash
 
 [Remote Execution]
 runOnAllNodes:            False
-runOnSwitches:            True
 runOnNodes:               None
 
 [BGP Traditional]
