@@ -5,6 +5,7 @@ Desc: Running
 '''
 
 from GENIutils import getConfigInfo, buildDictonary, orchestrateRemoteCommands
+import sys
 
 def main():
     # Grabbing configuration info from GENI config file
@@ -13,6 +14,10 @@ def main():
 
     notDone = True
     allCmds = []
+
+    resultOutput = False
+    if(len(sys.argv) > 1):
+        resultOutput = True
 
     print("Enter the word done to finish")
     while notDone:
@@ -27,7 +32,9 @@ def main():
     print("\n+---------Number of Nodes: {0}--------+".format(len(GENIDict)))
     for node in GENIDict:
         print(node)
-        orchestrateRemoteCommands(node, GENIDict, allCmds)
+        result = orchestrateRemoteCommands(node, GENIDict, allCmds, getOutput=resultOutput)
+        if(resultOutput):
+            print(result)
 
 if __name__ == "__main__":
     main() # run main
